@@ -1,0 +1,480 @@
+/* chess-engine demo
+   Direction: a precision instrument, not a chess website. Blue-slate ground,
+   warm stone squares, amber and cyan readouts. The engine's internals are the
+   feature, so the data typography carries as much weight as the board. */
+
+:root {
+  --ink:          #10141C;
+  --slate:        #1A2030;
+  --slate-2:      #222B3D;
+  --slate-3:      #2E3A50;
+  --line:         #37435C;
+  --stone:        #CBC5B7;
+  --stone-dim:    #8D93A3;
+  --amber:        #E8A33D;
+  --cyan:         #5BC8D4;
+  --rose:         #D9556B;
+
+  --sq-light:     #C7C1B3;
+  --sq-dark:      #3A465E;
+
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-ui:      "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --r: 4px;
+}
+
+* { box-sizing: border-box; }
+
+/* `display` on a component class beats the UA rule for [hidden], so restate it. */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--slate);
+  color: var(--stone);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(91, 200, 212, 0.07), transparent 70%);
+}
+
+/* ---------------------------------------------------------- header */
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem clamp(1rem, 4vw, 2.5rem) 0.9rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.wordmark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--stone);
+}
+.wordmark-dim { color: var(--stone-dim); }
+
+.topnav { display: flex; gap: 1.25rem; }
+.topnav a {
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stone-dim);
+  text-decoration: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.topnav a:hover, .topnav a:focus-visible { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* ---------------------------------------------------------- layout */
+
+.shell {
+  flex: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2rem) clamp(1rem, 4vw, 2.5rem) 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.85fr);
+  gap: clamp(1.25rem, 3vw, 2.5rem);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---------------------------------------------------------- board */
+
+.board-col { min-width: 0; }
+
+.board-wrap {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+/* Signature: evaluation as an instrument scale beside the board */
+.evalbar { width: 14px; flex: none; }
+.evalbar-track {
+  position: relative;
+  height: 100%;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.evalbar-fill {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 50%;
+  background: linear-gradient(to top, var(--stone), #EDE8DC);
+  transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.evalbar-mid {
+  position: absolute;
+  left: 0; right: 0; top: 50%;
+  height: 1px;
+  background: var(--amber);
+  opacity: 0.9;
+}
+.evalbar-tick {
+  position: absolute;
+  left: 0; width: 5px;
+  top: var(--at);
+  height: 1px;
+  background: var(--line);
+}
+
+/* Keep the whole board plus its controls inside one viewport, so a visitor
+   never has to scroll to find the difficulty switch. */
+.board-stack {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: min(100%, calc(100svh - 15rem));
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  aspect-ratio: 1;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.sq {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif;
+  font-size: clamp(1.5rem, 5.2vw, 2.9rem);
+  line-height: 1;
+  background: var(--sq-light);
+  transition: background-color 0.12s;
+}
+.sq.dark { background: var(--sq-dark); }
+.sq:disabled { cursor: default; }
+
+/* Pieces: solid glyphs for both sides, separated by fill not by outline,
+   so the two colours read as the same shapes on every platform. */
+.pc { pointer-events: none; }
+.pc.w { color: #F2EEE4; text-shadow: 0 1px 0 #6E6455, 0 0 2px rgba(0,0,0,0.5); }
+.pc.b { color: #171C26; text-shadow: 0 1px 0 rgba(255,255,255,0.16); }
+
+/* Coordinates, printed like a diagram in a chess book */
+.coord {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  font-weight: 500;
+  opacity: 0.55;
+  pointer-events: none;
+}
+.coord-f { right: 3px; bottom: 1px; }
+.coord-r { left: 3px; top: 1px; }
+.sq:not(.dark) .coord { color: var(--sq-dark); }
+.sq.dark .coord { color: var(--sq-light); }
+
+.sq.sel { background: var(--amber); }
+.sq.sel.dark { background: #B9822C; }
+
+.sq.last::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--cyan);
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+/* Legal destinations: a dot for a quiet move, a ring for a capture */
+.sq.dest::before {
+  content: "";
+  position: absolute;
+  width: 22%; height: 22%;
+  border-radius: 50%;
+  background: var(--cyan);
+  opacity: 0.75;
+  pointer-events: none;
+}
+.sq.dest.cap::before {
+  width: 82%; height: 82%;
+  background: transparent;
+  border: 3px solid var(--cyan);
+  opacity: 0.8;
+}
+
+.sq.check { background: var(--rose); }
+.sq.check.dark { background: #A93E52; }
+
+.board.thinking { pointer-events: none; }
+
+/* Promotion overlay */
+.promo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  background: rgba(16, 20, 28, 0.9);
+  backdrop-filter: blur(2px);
+  border-radius: var(--r);
+  z-index: 5;
+}
+.promo-title {
+  margin: 0;
+  text-align: center;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--stone-dim);
+}
+.promo-row { display: flex; gap: 0.5rem; }
+.promo-row button {
+  width: 3.25rem; height: 3.25rem;
+  font-size: 1.9rem;
+  line-height: 1;
+  color: #F2EEE4;
+  background: var(--slate-3);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: background-color 0.14s, border-color 0.14s;
+}
+.promo-row button:hover, .promo-row button:focus-visible {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--ink);
+}
+
+/* ---------------------------------------------------------- status + controls */
+
+.status {
+  margin: 0.9rem 0 1rem;
+  font-size: 1rem;
+  min-height: 1.5rem;
+  color: var(--stone);
+}
+.status .accent { color: var(--amber); }
+.status .danger { color: var(--rose); }
+.status.thinking::after {
+  content: "";
+  display: inline-block;
+  width: 0.4em; height: 0.4em;
+  margin-left: 0.45em;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse 0.9s ease-in-out infinite;
+  vertical-align: middle;
+}
+@keyframes pulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.seg button {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.85rem;
+  color: var(--stone-dim);
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+  transition: background-color 0.14s, color 0.14s;
+}
+.seg button:last-child { border-right: 0; }
+.seg button:hover { color: var(--stone); }
+.seg button.on { background: var(--slate-3); color: var(--amber); }
+
+.btn-row { display: flex; gap: 0.5rem; }
+.btn {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.55rem 1rem;
+  color: var(--stone);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: background-color 0.14s, border-color 0.14s, color 0.14s;
+}
+.btn:hover:not(:disabled) { border-color: var(--stone-dim); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+.btn-primary { background: var(--amber); border-color: var(--amber); color: var(--ink); font-weight: 500; }
+.btn-primary:hover { background: #F0B255; border-color: #F0B255; }
+
+/* ---------------------------------------------------------- engine panels */
+
+.engine-col { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+
+.panel {
+  background: var(--slate-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 1rem 1.1rem 1.1rem;
+}
+.panel-quiet { background: transparent; }
+
+.panel-head {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stone-dim);
+}
+
+.readout { margin: 0; }
+.readout .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.34rem 0;
+  border-bottom: 1px dotted var(--line);
+}
+.readout .row:last-child { border-bottom: 0; }
+.readout dt { font-size: 0.85rem; color: var(--stone-dim); }
+.readout dd { margin: 0; }
+
+.num {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--cyan);
+  font-variant-numeric: tabular-nums;
+}
+.num.hot { color: var(--rose); }
+
+.hash-block { margin-top: 0.9rem; }
+.hash-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone-dim);
+  margin-bottom: 0.35rem;
+}
+.hash {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1.5;
+  color: var(--amber);
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.5rem 0.6rem;
+  word-break: break-all;
+}
+
+/* Move log, set like a scoresheet */
+.movelog {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  max-height: 15rem;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 1fr;
+  gap: 0.1rem 0.4rem;
+  align-content: start;
+}
+.movelog li { padding: 0.1rem 0; }
+.movelog .n { color: var(--stone-dim); font-size: 0.75rem; }
+.movelog .mv { color: var(--stone); }
+.movelog .mv.bot { color: var(--cyan); }
+.movelog-empty {
+  grid-column: 1 / -1;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  color: var(--stone-dim);
+}
+
+.note { margin: 0 0 0.85rem; font-size: 0.84rem; color: var(--stone-dim); }
+.note code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--stone);
+}
+
+.snippet {
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow-x: auto;
+}
+.snippet code {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--amber);
+}
+
+/* ---------------------------------------------------------- footer */
+
+.foot {
+  padding: 1rem clamp(1rem, 4vw, 2.5rem) 1.6rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--stone-dim);
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+}
+.foot-sep { opacity: 0.5; }
+
+/* ---------------------------------------------------------- a11y floor */
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

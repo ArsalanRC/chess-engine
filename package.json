@@ -38,6 +38,8 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "demo": "npm run build && rm -rf demo/engine && cp -r dist demo/engine",
+    "serve": "npm run demo && npx --yes serve demo -l 4173",
     "test": "vitest run",
     "test:watch": "vitest",
     "type-check": "tsc --noEmit",

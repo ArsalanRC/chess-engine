@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chess-engine · playable demo</title>
+<meta name="description" content="Play against a minimax chess bot with alpha-beta pruning. A live demo of the chess-engine TypeScript library, with the engine's internal state on display." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <h1 class="wordmark">chess<span class="wordmark-dim">-engine</span></h1>
+  <nav class="topnav">
+    <a href="https://github.com/ArsalanRC/chess-engine">Source</a>
+    <a href="https://github.com/ArsalanRC">Author</a>
+  </nav>
+</header>
+
+<main class="shell">
+
+  <!-- Board column -->
+  <section class="board-col">
+
+    <div class="board-wrap">
+      <!-- Signature element: the engine's evaluation as a precision instrument scale -->
+      <div class="evalbar" role="img" aria-label="Position evaluation" aria-describedby="eval-readout">
+        <div class="evalbar-track">
+          <div class="evalbar-fill" id="eval-fill"></div>
+          <div class="evalbar-mid"></div>
+          <span class="evalbar-tick" style="--at: 25%"></span>
+          <span class="evalbar-tick" style="--at: 75%"></span>
+        </div>
+      </div>
+
+      <div class="board-stack">
+        <div class="board" id="board"></div>
+        <div class="promo" id="promo" hidden>
+          <p class="promo-title">Promote to</p>
+          <div class="promo-row" id="promo-row"></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="status" id="status">White to move.</p>
+
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Bot difficulty">
+        <button type="button" data-diff="easy">Easy</button>
+        <button type="button" data-diff="medium" class="on">Medium</button>
+        <button type="button" data-diff="hard">Hard</button>
+      </div>
+      <div class="btn-row">
+        <button type="button" id="undo" class="btn">Undo</button>
+        <button type="button" id="newgame" class="btn btn-primary">New game</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Engine column -->
+  <aside class="engine-col">
+
+    <section class="panel">
+      <h2 class="panel-head">Engine readout</h2>
+      <dl class="readout">
+        <div class="row"><dt>Evaluation</dt><dd id="eval-readout" class="num">0.00</dd></div>
+        <div class="row"><dt>Search depth</dt><dd id="r-depth" class="num">3</dd></div>
+        <div class="row"><dt>Legal moves</dt><dd id="r-legal" class="num">20</dd></div>
+        <div class="row"><dt>Halfmove clock</dt><dd id="r-halfmove" class="num">0</dd></div>
+        <div class="row"><dt>Fullmove</dt><dd id="r-fullmove" class="num">1</dd></div>
+        <div class="row"><dt>In check</dt><dd id="r-check" class="num">no</dd></div>
+        <div class="row"><dt>En passant</dt><dd id="r-ep" class="num">none</dd></div>
+      </dl>
+      <div class="hash-block">
+        <span class="hash-label">Position hash</span>
+        <code class="hash" id="r-hash">.</code>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panel-head">Moves</h2>
+      <ol class="movelog" id="movelog"><li class="movelog-empty">No moves yet.</li></ol>
+    </section>
+
+    <section class="panel panel-quiet">
+      <p class="note">
+        Everything above is read straight off the engine's public API. The bar is
+        <code>evaluate(state)</code> in centipawns, the counters come off
+        <code>ChessGameState</code>, and the hash is what
+        <code>hashPosition()</code> uses to detect threefold repetition.
+      </p>
+      <pre class="snippet"><code>npm install @arsalanrc/chess-engine</code></pre>
+    </section>
+
+  </aside>
+</main>
+
+<footer class="foot">
+  <span>Zero runtime dependencies. Full FIDE rules.</span>
+  <span class="foot-sep">·</span>
+  <span>MIT</span>
+</footer>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

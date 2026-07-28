@@ -4,6 +4,10 @@ A complete chess engine in TypeScript. Full FIDE rules, a minimax bot with alpha
 
 No board, no renderer, no framework. It takes a position and gives you legal moves, new positions and game results. What you draw with that is up to you.
 
+### [Play it in your browser](https://arsalanrc.github.io/chess-engine/)
+
+The demo puts the engine's internals on screen next to the board: live evaluation, legal move count, halfmove clock and the raw position hash used for repetition detection. It loads the compiled library as plain ES modules, with no bundler in the way.
+
 ```bash
 npm install @arsalanrc/chess-engine
 ```
