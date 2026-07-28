@@ -441,20 +441,34 @@ body {
   word-break: break-all;
 }
 
-/* Move log, set like a scoresheet */
+/* Move log, set like a scoresheet. Capped at roughly nine move pairs, then it
+   scrolls. The scrollbar is styled rather than left to the OS, because macOS
+   overlay scrollbars stay invisible until you touch them and the panel just
+   looks like it grew. */
 .movelog {
   margin: 0;
-  padding: 0;
+  padding: 0 0.15rem 0 0;
   list-style: none;
   font-family: var(--font-mono);
   font-size: 0.82rem;
-  max-height: 15rem;
+  height: 11rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   display: grid;
   grid-template-columns: 2.2rem 1fr 1fr;
   gap: 0.1rem 0.4rem;
   align-content: start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--slate-3) transparent;
 }
+.movelog::-webkit-scrollbar { width: 9px; }
+.movelog::-webkit-scrollbar-track { background: var(--ink); border-radius: 5px; }
+.movelog::-webkit-scrollbar-thumb {
+  background: var(--slate-3);
+  border-radius: 5px;
+  border: 2px solid var(--ink);
+}
+.movelog::-webkit-scrollbar-thumb:hover { background: var(--line); }
 .movelog li { padding: 0.1rem 0; }
 .movelog .n { color: var(--stone-dim); font-size: 0.75rem; }
 .movelog .mv { color: var(--stone); }

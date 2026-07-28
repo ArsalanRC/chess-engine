@@ -62,11 +62,19 @@ Minimax with alpha-beta pruning. Evaluation is material plus piece-square tables
 
 | Difficulty | Depth | Behaviour |
 |---|---|---|
-| `easy` | 2 | Plays a random legal move 20% of the time, so it is beatable on purpose |
-| `medium` | 3 | Deterministic, takes free material |
-| `hard` | 4 | Deterministic, finds mate-in-one and avoids hanging its queen |
+| `easy` | 2 | Plays an outright random legal move 20% of the time, so it is beatable on purpose |
+| `medium` | 3 | Takes free material |
+| `hard` | 4 | Finds mate-in-one and avoids hanging its queen |
 
 Moves are ordered captures-first by victim value before the search runs, which is what makes the pruning actually bite. Checkmate scores carry a depth penalty, so a mate in one is always preferred over a mate in three.
+
+Moves the evaluation rates **equally** are chosen between at random, so repeated games do not open identically. This costs no strength, since it only reorders moves the engine already considers the same. Without it a strict `>` comparison resolves every tie in favour of whichever move generation emitted first, and in a symmetric opening almost everything ties, so the engine opens the same way forever.
+
+For a game that replays identically, supply your own generator:
+
+```ts
+selectBotMove(state, "hard", { random: seededRandom(42) });
+```
 
 ## Board representation
 

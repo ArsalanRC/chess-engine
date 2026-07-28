@@ -62,6 +62,15 @@ export type GameResult =
 /** Search-depth preset for {@link selectBotMove}. */
 export type BotDifficulty = "easy" | "medium" | "hard";
 
+export interface BotOptions {
+  /**
+   * Source of randomness, defaulting to `Math.random`. Supply a seeded
+   * generator when a game needs to replay identically, for a regression test
+   * or a reproducible bug report.
+   */
+  random?: () => number;
+}
+
 /**
  * Complete game state. Treat as immutable. `applyMove` returns a new state
  * and never mutates its argument.
