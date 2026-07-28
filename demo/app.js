@@ -20,7 +20,8 @@ import {
   frToSq,
 } from "./engine/index.js";
 
-const GLYPH = { K: "♚", Q: "♛", R: "♜", B: "♝", N: "♞", P: "♟" };
+import { pieceSVG } from "./pieces.js";
+
 const FILES = "abcdefgh";
 const DEPTH = { easy: 2, medium: 3, hard: 4 };
 
@@ -41,6 +42,7 @@ const el = {
   promoRow: document.getElementById("promo-row"),
   undo: document.getElementById("undo"),
   newgame: document.getElementById("newgame"),
+  evalbar: document.getElementById("evalbar"),
 };
 
 let state = createInitialState();
@@ -49,8 +51,11 @@ let log = [];            // { san, byBot }
 let selected = null;     // square index
 let legalForSelected = [];
 let difficulty = "medium";
+let playerColor = "white";
 let thinking = false;
 let pendingPromotion = null;
+
+const flipped = () => playerColor === "black";
 
 const squareName = (sq) => FILES[fileOf(sq)] + (rankOf(sq) + 1);
 
@@ -68,24 +73,28 @@ function toSan(st, move) {
 
 // ---------------------------------------------------------------- rendering
 
+/** Whichever side you play sits at the bottom, as it would across a real board. */
 function buildBoard() {
   el.board.replaceChildren();
-  // rank 7 at the top so white sits at the bottom, as in a printed diagram
-  for (let rank = 7; rank >= 0; rank--) {
-    for (let file = 0; file < 8; file++) {
+  const ranks = flipped() ? [0, 1, 2, 3, 4, 5, 6, 7] : [7, 6, 5, 4, 3, 2, 1, 0];
+  const files = flipped() ? [7, 6, 5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6, 7];
+
+  for (const rank of ranks) {
+    for (const file of files) {
       const sq = frToSq(file, rank);
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "sq" + ((file + rank) % 2 === 0 ? " dark" : "");
       btn.dataset.sq = String(sq);
       btn.addEventListener("click", () => onSquare(sq));
-      if (rank === 0) {
+      // Label the outer edges of whichever way the board is facing.
+      if (rank === ranks[7]) {
         const c = document.createElement("span");
         c.className = "coord coord-f";
         c.textContent = FILES[file];
         btn.appendChild(c);
       }
-      if (file === 0) {
+      if (file === files[0]) {
         const c = document.createElement("span");
         c.className = "coord coord-r";
         c.textContent = String(rank + 1);
@@ -94,6 +103,7 @@ function buildBoard() {
       el.board.appendChild(btn);
     }
   }
+  el.evalbar.classList.toggle("flip", flipped());
 }
 
 function render() {
@@ -106,12 +116,13 @@ function render() {
     const sq = Number(btn.dataset.sq);
     const piece = state.board[sq];
 
-    btn.querySelector(".pc")?.remove();
-    if (piece) {
-      const span = document.createElement("span");
-      span.className = "pc " + (piece.color === "white" ? "w" : "b");
-      span.textContent = GLYPH[piece.type];
-      btn.appendChild(span);
+    // Only touch the DOM when the piece on this square actually changed, so
+    // untouched pieces do not replay their placement animation every render.
+    const want = piece ? piece.type + piece.color : "";
+    if (btn.dataset.pc !== want) {
+      btn.dataset.pc = want;
+      btn.querySelector(".pc")?.remove();
+      if (piece) btn.insertAdjacentHTML("beforeend", pieceSVG(piece.type, piece.color));
     }
 
     btn.classList.toggle("sel", sq === selected);
@@ -123,7 +134,7 @@ function render() {
       state.lastMove !== null && (sq === state.lastMove.from || sq === state.lastMove.to)
     );
 
-    const mine = piece && piece.color === "white";
+    const mine = piece && piece.color === playerColor;
     btn.disabled = over || thinking || (!destinations.has(sq) && !mine);
     btn.setAttribute(
       "aria-label",
@@ -167,7 +178,8 @@ function renderStatus(legal, over) {
     if (state.gameResult === "draw") {
       el.status.innerHTML = `Draw by <span class="accent">${reason}</span>.`;
     } else {
-      const who = state.gameResult === "white_wins" ? "You win" : "The engine wins";
+      const winner = state.gameResult === "white_wins" ? "white" : "black";
+      const who = winner === playerColor ? "You win" : "The engine wins";
       el.status.innerHTML = `Checkmate. <span class="danger">${who}</span>.`;
     }
     return;
@@ -178,7 +190,7 @@ function renderStatus(legal, over) {
   }
   const check = state.check ? ` <span class="danger">Check.</span>` : "";
   el.status.innerHTML =
-    (state.turnColor === "white" ? "Your move." : "Engine to move.") +
+    (state.turnColor === playerColor ? "Your move." : "Engine to move.") +
     check +
     ` <span class="accent">${legal.length}</span> legal moves.`;
 }
@@ -244,7 +256,7 @@ function askPromotion(moves) {
     if (!move) continue;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.textContent = GLYPH[type];
+    btn.innerHTML = pieceSVG(type, state.turnColor);
     btn.setAttribute("aria-label", `Promote to ${type}`);
     btn.addEventListener("click", () => {
       el.promo.hidden = true;
@@ -293,14 +305,17 @@ function newGame() {
   thinking = false;
   pendingPromotion = null;
   el.promo.hidden = true;
+  buildBoard();
   renderLog();
   render();
+  // White always opens, so choosing black hands the first move to the engine.
+  if (playerColor === "black") botTurn();
 }
 
 function undo() {
   if (thinking || history.length === 0) return;
-  // Step back over the engine's reply as well, landing on the player's turn.
-  const steps = Math.min(history.length, state.turnColor === "white" ? 2 : 1);
+  // Step back over the engine's reply as well, landing on your own turn.
+  const steps = Math.min(history.length, state.turnColor === playerColor ? 2 : 1);
   for (let i = 0; i < steps; i++) {
     state = history.pop();
     log.pop();
@@ -325,6 +340,18 @@ for (const btn of document.querySelectorAll("[data-diff]")) {
       other.classList.toggle("on", other === btn);
     }
     render();
+  });
+}
+
+// Switching sides mid-game has no sensible meaning, so it starts a new one.
+for (const btn of document.querySelectorAll("[data-side]")) {
+  btn.addEventListener("click", () => {
+    if (thinking || btn.dataset.side === playerColor) return;
+    playerColor = btn.dataset.side;
+    for (const other of document.querySelectorAll("[data-side]")) {
+      other.classList.toggle("on", other === btn);
+    }
+    newGame();
   });
 }
 

@@ -27,7 +27,7 @@
 
     <div class="board-wrap">
       <!-- Signature element: the engine's evaluation as a precision instrument scale -->
-      <div class="evalbar" role="img" aria-label="Position evaluation" aria-describedby="eval-readout">
+      <div class="evalbar" id="evalbar" role="img" aria-label="Position evaluation" aria-describedby="eval-readout">
         <div class="evalbar-track">
           <div class="evalbar-fill" id="eval-fill"></div>
           <div class="evalbar-mid"></div>
@@ -48,10 +48,22 @@
     <p class="status" id="status">White to move.</p>
 
     <div class="controls">
-      <div class="seg" role="group" aria-label="Bot difficulty">
-        <button type="button" data-diff="easy">Easy</button>
-        <button type="button" data-diff="medium" class="on">Medium</button>
-        <button type="button" data-diff="hard">Hard</button>
+      <div class="ctl-set">
+        <div class="ctl-group">
+          <span class="ctl-label" id="lbl-side">Play as</span>
+          <div class="seg" role="group" aria-labelledby="lbl-side">
+            <button type="button" data-side="white" class="on">White</button>
+            <button type="button" data-side="black">Black</button>
+          </div>
+        </div>
+        <div class="ctl-group">
+          <span class="ctl-label" id="lbl-diff">Engine</span>
+          <div class="seg" role="group" aria-labelledby="lbl-diff">
+            <button type="button" data-diff="easy">Easy</button>
+            <button type="button" data-diff="medium" class="on">Medium</button>
+            <button type="button" data-diff="hard">Hard</button>
+          </div>
+        </div>
       </div>
       <div class="btn-row">
         <button type="button" id="undo" class="btn">Undo</button>
