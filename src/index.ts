@@ -1,4 +1,4 @@
-/** Chess engine barrel — re-exports the public surface. */
+/** Chess engine barrel: re-exports the public surface. */
 
 export * from "./types.js";
 export {

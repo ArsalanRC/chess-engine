@@ -35,7 +35,7 @@ export interface CastlingRights {
  * pawn moves that reach the back rank. `isCastling` is "kingside" or
  * "queenside" when the move is a castle (the `from`/`to` are the king's
  * squares; the rook move is derived). `isEnPassant` flags an en passant
- * capture — `capturedPiece` in that case is the pawn removed from the
+ * capture. `capturedPiece` in that case is the pawn removed from the
  * square behind `to`, not the `to` square itself.
  */
 export interface ChessMove {
@@ -63,7 +63,7 @@ export type GameResult =
 export type BotDifficulty = "easy" | "medium" | "hard";
 
 /**
- * Complete game state. Treat as immutable — `applyMove` returns a new state
+ * Complete game state. Treat as immutable. `applyMove` returns a new state
  * and never mutates its argument.
  */
 export interface ChessGameState {
@@ -79,7 +79,7 @@ export interface ChessGameState {
   enPassantSquare: number | null;
   /** Halfmoves since the last capture or pawn move (50-move rule). */
   halfmoveClock: number;
-  /** Fullmove counter — increments after each black move. */
+  /** Fullmove counter: increments after each black move. */
   fullmoveNumber: number;
   /** Is the side to move in check? */
   check: boolean;

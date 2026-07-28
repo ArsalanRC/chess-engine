@@ -1,14 +1,14 @@
 /**
- * Chess rules — move generation, legality filtering, application, and
+ * Chess rules: move generation, legality filtering, application, and
  * end-of-game detection.
  *
  * The public surface is:
- *   - `getValidMoves(state)` — all fully-legal moves for the side to move
- *   - `applyMove(state, move)` — apply a move and return the new state
+ *   - `getValidMoves(state)`: all fully-legal moves for the side to move
+ *   - `applyMove(state, move)`: apply a move and return the new state
  *                                (handles castling, en passant, promotion,
  *                                 updates rights / counters / game result)
- *   - `isInCheck(board, color)` — utility used by the bot + UI
- *   - `hashPosition(...)` — FEN-ish position hash for repetition detection
+ *   - `isInCheck(board, color)`: utility used by the bot + UI
+ *   - `hashPosition(...)`: FEN-ish position hash for repetition detection
  *
  * Internal helpers (exported for testing):
  *   - `isSquareAttacked`, `getPseudoLegalMoves`, `findKing`.
@@ -69,7 +69,7 @@ export function isSquareAttacked(
     if (p && p.color === byColor && p.type === "N") return true;
   }
 
-  // Pawn — attacks diagonally forward from its own perspective.
+  // Pawn: attacks diagonally forward from its own perspective.
   // A white pawn attacking `targetSq` sits one rank BELOW it; a black
   // pawn sits one rank above.
   const pawnFromRank = byColor === "white" ? tr - 1 : tr + 1;
@@ -292,7 +292,7 @@ function generatePawnMoves(
         pushMove(moves, from, to, { capturedPiece: target });
       }
     } else if (!target && state.enPassantSquare === to) {
-      // En passant — the captured pawn is on the same file as `to` but one
+      // En passant: the captured pawn is on the same file as `to` but one
       // rank BACK (towards the mover's side).
       const capturedSq = frToSq(nf, r);
       const capturedPawn = state.board[capturedSq];
@@ -368,7 +368,7 @@ function generateCastlingMoves(state: ChessGameState): Partial<ChessMove>[] {
 }
 
 // ---------------------------------------------------------------------------
-// Legal move generation — filters pseudo-legal moves by king safety.
+// Legal move generation: filters pseudo-legal moves by king safety.
 // ---------------------------------------------------------------------------
 
 /** All fully-legal moves for the side to move. */
@@ -431,7 +431,7 @@ function simulateMoveOnBoard(
 }
 
 // ---------------------------------------------------------------------------
-// applyMove — full state transition with bookkeeping.
+// applyMove: full state transition with bookkeeping.
 // ---------------------------------------------------------------------------
 
 export function applyMove(
@@ -463,13 +463,13 @@ export function applyMove(
     ? { type: move.promotion, color: piece.color }
     : piece;
 
-  // En passant capture — remove the captured pawn from its own square.
+  // En passant capture: remove the captured pawn from its own square.
   if (move.isEnPassant) {
     const capturedSq = frToSq(fileOf(move.to), rankOf(move.from));
     board[capturedSq] = null;
   }
 
-  // Castling — move the rook alongside the king.
+  // Castling: move the rook alongside the king.
   if (move.isCastling) {
     const rank = rankOf(move.from);
     if (move.isCastling === "kingside") {
@@ -540,7 +540,7 @@ function updateCastlingRights(
     if (moved.color === "black" && move.from === frToSq(0, 7)) r.blackQueenside = false;
     if (moved.color === "black" && move.from === frToSq(7, 7)) r.blackKingside = false;
   }
-  // Captured rook on its home square — strip the corresponding right.
+  // Captured rook on its home square: strip the corresponding right.
   if (captured && captured.type === "R") {
     if (move.to === frToSq(0, 0)) r.whiteQueenside = false;
     if (move.to === frToSq(7, 0)) r.whiteKingside = false;

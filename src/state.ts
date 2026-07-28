@@ -1,5 +1,5 @@
 /**
- * Chess state creation — initialises a game from the standard starting
+ * Chess state creation: initialises a game from the standard starting
  * position. White always moves first.
  */
 

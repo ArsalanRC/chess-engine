@@ -1,5 +1,5 @@
 /**
- * Chess engine constants — piece values, piece-square tables, and the
+ * Chess engine constants: piece values, piece-square tables, and the
  * initial board layout.
  *
  * Piece-square tables are given from white's perspective (index 0 = a1,
@@ -28,7 +28,7 @@ export const PIECE_VALUES: Record<ChessPieceType, number> = {
 };
 
 // Piece-square tables, indexed from white's perspective. Each is 64 entries
-// laid out as rank 1..rank 8, file a..file h — i.e. index = rank*8 + file,
+// laid out as rank 1..rank 8, file a..file h, i.e. index = rank*8 + file,
 // same as the board itself.
 
 export const PST_PAWN: number[] = [
@@ -86,7 +86,7 @@ export const PST_QUEEN: number[] = [
   -20,-10,-10, -5, -5,-10,-10,-20,
 ];
 
-/** Middlegame king table — penalise central king, reward castled positions. */
+/** Middlegame king table: penalise central king, reward castled positions. */
 export const PST_KING_MIDDLE: number[] = [
    20, 30, 10,  0,  0, 10, 30, 20,
    20, 20,  0,  0,  0,  0, 20, 20,

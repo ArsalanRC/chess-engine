@@ -1,5 +1,5 @@
 /**
- * Chess bot — minimax search with alpha-beta pruning.
+ * Chess bot: minimax search with alpha-beta pruning.
  *
  * Difficulty maps to search depth:
  *   easy   → depth 2
@@ -76,7 +76,7 @@ function search(
 
   const moves = getValidMoves(state);
   if (moves.length === 0) {
-    // Checkmate or stalemate — evaluate terminal position from the side-to-move
+    // Checkmate or stalemate: evaluate terminal position from the side-to-move
     // perspective. Checkmate scores include a depth penalty so earlier mates
     // beat later mates.
     if (state.check) {
@@ -88,7 +88,7 @@ function search(
     return { score: 0, move: null };
   }
 
-  // Move ordering — captures first (MVV-LVA-ish: value of captured piece).
+  // Move ordering: captures first (MVV-LVA-ish: value of captured piece).
   const ordered = moves.slice().sort((a, b) => captureValue(state, b) - captureValue(state, a));
 
   let best: SearchResult = { score: maximising ? -Infinity : Infinity, move: ordered[0] };
@@ -123,7 +123,7 @@ function captureValue(state: ChessGameState, move: ChessMove): number {
  * legal moves (checkmate or stalemate).
  *
  * Deterministic at `medium` and `hard`. At `easy` the bot plays a random legal
- * move 20% of the time, so it is beatable by a human — pass a seeded
+ * move 20% of the time, so it is beatable by a human. Pass a seeded
  * `Math.random` replacement if you need reproducibility there.
  */
 export function selectBotMove(
