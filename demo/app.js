@@ -43,6 +43,20 @@ const el = {
   undo: document.getElementById("undo"),
   newgame: document.getElementById("newgame"),
   evalbar: document.getElementById("evalbar"),
+  over: document.getElementById("over"),
+  overKind: document.getElementById("over-kind"),
+  overHead: document.getElementById("over-head"),
+  overDetail: document.getElementById("over-detail"),
+  overDismiss: document.getElementById("over-dismiss"),
+  overAgain: document.getElementById("over-again"),
+};
+
+/** Plain-language explanation for each way the engine can call a draw. */
+const DRAW_TEXT = {
+  stalemate: "The side to move has no legal move and is not in check.",
+  insufficient_material: "Neither side has enough material left to force mate.",
+  fifty_move: "Fifty moves passed with no capture and no pawn move.",
+  threefold_repetition: "The same position occurred three times.",
 };
 
 let state = createInitialState();
@@ -54,6 +68,7 @@ let difficulty = "medium";
 let playerColor = "white";
 let thinking = false;
 let pendingPromotion = null;
+let overDismissed = false;
 
 const flipped = () => playerColor === "black";
 
@@ -172,18 +187,13 @@ function renderReadout(legal) {
 
 function renderStatus(legal, over) {
   el.status.classList.toggle("thinking", thinking);
+  el.status.classList.toggle("final", over);
 
   if (over) {
-    const reason = state.drawReason ? state.drawReason.replace(/_/g, " ") : "";
-    if (state.gameResult === "draw") {
-      el.status.innerHTML = `Draw by <span class="accent">${reason}</span>.`;
-    } else {
-      const winner = state.gameResult === "white_wins" ? "white" : "black";
-      const who = winner === playerColor ? "You win" : "The engine wins";
-      el.status.innerHTML = `Checkmate. <span class="danger">${who}</span>.`;
-    }
+    renderResult();
     return;
   }
+  el.over.hidden = true;
   if (thinking) {
     el.status.textContent = "Engine thinking";
     return;
@@ -193,6 +203,33 @@ function renderStatus(legal, over) {
     (state.turnColor === playerColor ? "Your move." : "Engine to move.") +
     check +
     ` <span class="accent">${legal.length}</span> legal moves.`;
+}
+
+/**
+ * The result is announced twice on purpose: an overlay that is impossible to
+ * miss, and a standing line under the board once the overlay is dismissed.
+ */
+function renderResult() {
+  const draw = state.gameResult === "draw";
+  const winner = state.gameResult === "white_wins" ? "white" : "black";
+  const won = !draw && winner === playerColor;
+  const tone = draw ? "draw" : won ? "win" : "loss";
+
+  const kind = draw ? "Draw" : "Checkmate";
+  const head = draw ? "Draw" : won ? "You win" : "You lose";
+
+  const detail = draw
+    ? DRAW_TEXT[state.drawReason] ?? ""
+    : `${winner === "white" ? "White" : "Black"} delivered mate on move ${state.fullmoveNumber}.` +
+      (won ? "" : " Undo takes back your last move if you want another try.");
+
+  el.overKind.textContent = kind;
+  el.overHead.textContent = head;
+  el.overDetail.textContent = detail;
+  el.over.className = "over " + tone;
+  el.over.hidden = overDismissed;
+
+  el.status.innerHTML = `${kind}. <span class="${tone}">${head}</span>.`;
 }
 
 function renderLog() {
@@ -304,7 +341,9 @@ function newGame() {
   legalForSelected = [];
   thinking = false;
   pendingPromotion = null;
+  overDismissed = false;
   el.promo.hidden = true;
+  el.over.hidden = true;
   buildBoard();
   renderLog();
   render();
@@ -323,6 +362,8 @@ function undo() {
   selected = null;
   legalForSelected = [];
   el.promo.hidden = true;
+  el.over.hidden = true;
+  overDismissed = false;
   pendingPromotion = null;
   renderLog();
   render();
@@ -332,6 +373,11 @@ function undo() {
 
 el.newgame.addEventListener("click", newGame);
 el.undo.addEventListener("click", undo);
+el.overAgain.addEventListener("click", newGame);
+el.overDismiss.addEventListener("click", () => {
+  overDismissed = true;
+  el.over.hidden = true;
+});
 
 for (const btn of document.querySelectorAll("[data-diff]")) {
   btn.addEventListener("click", () => {
@@ -357,6 +403,11 @@ for (const btn of document.querySelectorAll("[data-side]")) {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    if (!el.over.hidden) {
+      overDismissed = true;
+      el.over.hidden = true;
+      return;
+    }
     if (pendingPromotion) {
       el.promo.hidden = true;
       pendingPromotion = null;

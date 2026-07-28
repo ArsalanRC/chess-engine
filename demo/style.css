@@ -299,6 +299,72 @@ body {
   color: var(--ink);
 }
 
+/* Game over. The result is the one moment the page should raise its voice, and
+   it is also where the display serif earns its place. Dismissible, because the
+   first thing a player wants after a mate is to look at the final position. */
+.over {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(16, 20, 28, 0.87);
+  backdrop-filter: blur(3px);
+  border-radius: var(--r);
+  z-index: 6;
+  animation: overIn 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.over-kind {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--stone-dim);
+}
+
+.over-head {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  line-height: 1.05;
+  font-weight: 400;
+  color: var(--stone);
+}
+.over.win  .over-head { color: var(--amber); }
+.over.loss .over-head { color: var(--rose); }
+.over.draw .over-head { color: var(--cyan); }
+
+.over-detail {
+  margin: 0.5rem 0 0;
+  max-width: 26ch;
+  font-size: 0.88rem;
+  color: var(--stone-dim);
+}
+
+.over-actions { display: flex; gap: 0.5rem; margin-top: 1.4rem; }
+
+@keyframes overIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Once dismissed the result still has to stay legible, so the status line
+   below the board takes over as a standing marker. */
+.status.final {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--stone);
+}
+.status.final .win  { color: var(--amber); }
+.status.final .loss { color: var(--rose); }
+.status.final .draw { color: var(--cyan); }
+
 /* ---------------------------------------------------------- status + controls */
 
 .status {
