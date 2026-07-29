@@ -21,7 +21,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # standalone installs pnpm as a self-contained binary with its own Node,
+      # so the toolchain does not impose a floor on the matrix. pnpm 11 needs
+      # Node >= 22.13, but the package supports Node >= 18, and those are
+      # different questions. Without this the matrix silently becomes a test of
+      # what pnpm runs on rather than what the library runs on.
       - uses: pnpm/action-setup@v4
+        with:
+          standalone: true
 
       - uses: actions/setup-node@v4
         with:
