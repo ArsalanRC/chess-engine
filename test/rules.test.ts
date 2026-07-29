@@ -312,7 +312,7 @@ describe("isSquareAttacked / isInCheck", () => {
     const state = customState((b) => {
       placePiece(b, "R", "black", 4, 4);
     });
-    // White king on e1, black rook on e4 — king is in check.
+    // White king on e1, black rook on e4, king is in check.
     expect(isInCheck(state.board, "white")).toBe(true);
   });
 });
@@ -370,7 +370,7 @@ describe("castling", () => {
     const state = customState(
       (b) => {
         placePiece(b, "R", "white", 7, 0);
-        placePiece(b, "R", "black", 5, 4); // attacks f-file — f1 (5,0)
+        placePiece(b, "R", "black", 5, 4); // attacks f-file, f1 (5,0)
       },
       {
         castlingRights: {
@@ -445,7 +445,7 @@ describe("end-of-game detection", () => {
     // Classic K+P vs K stalemate: white K e6, white P e7, black K e8. Actually
     // that's checkmate if black to move and K on e8. Let me use a well-known
     // stalemate: black king on a8, white king on c7, white queen on b6, black
-    // to move — all escape squares covered but no check.
+    // to move, all escape squares covered but no check.
     const state = customState(
       (b) => {
         // Clear default kings first to place them manually.
@@ -459,7 +459,7 @@ describe("end-of-game detection", () => {
     );
     expect(getValidMoves(state).length).toBe(0);
     expect(isInCheck(state.board, "black")).toBe(false);
-    // Apply a dummy move to finalise? No — stalemate is detected on entering
+    // Apply a dummy move to finalise? No, stalemate is detected on entering
     // the position. Apply a no-op by using a white move that reaches here.
     // For this unit test we simulate the detection via applyMove by playing a
     // white move that creates the stalemate.
@@ -500,7 +500,7 @@ describe("end-of-game detection", () => {
   });
 
   it("threefold repetition triggers draw", () => {
-    // Play Nf3 Nf6 Ng1 Ng8 Nf3 Nf6 Ng1 Ng8 — should draw via repetition.
+    // Play Nf3 Nf6 Ng1 Ng8 Nf3 Nf6 Ng1 Ng8, should draw via repetition.
     let state = createInitialState();
     const wNf3 = findMove(getValidMoves(state), frToSq(6, 0), frToSq(5, 2))!;
     state = applyMove(state, wNf3);
@@ -536,7 +536,7 @@ describe("end-of-game detection", () => {
 
 describe("check detection keeps pinned pieces honest", () => {
   it("pinned piece cannot leave the pin line", () => {
-    // White king on e1, white knight on e2, black rook on e8 — the knight is
+    // White king on e1, white knight on e2, black rook on e8, the knight is
     // pinned and cannot move.
     const state = customState((b) => {
       placePiece(b, "N", "white", 4, 1);
@@ -548,7 +548,7 @@ describe("check detection keeps pinned pieces honest", () => {
 
   it("king must resolve check: capture, block, or move", () => {
     // White king on e1, black queen on e2 giving check with no friendly
-    // defender — the only legal move is king takes queen.
+    // defender, the only legal move is king takes queen.
     const state = customState(
       (b) => {
         placePiece(b, "Q", "black", 4, 1);

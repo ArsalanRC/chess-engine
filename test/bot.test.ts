@@ -118,7 +118,7 @@ describe("selectBotMove", () => {
   });
 
   it("plays the mate-in-one when available (hard)", () => {
-    // Back-rank mate: white rook on a1 moves to a8 — black king is on h8 with
+    // Back-rank mate: white rook on a1 moves to a8, black king is on h8 with
     // pawns on f7/g7/h7 boxing it in.
     const state = customState((b) => {
       // Wipe defaults, set up a back-rank-mate position.

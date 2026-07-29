@@ -114,10 +114,10 @@ Die Typen (`ChessGameState`, `ChessMove`, `ChessPiece`, `ChessBoard`, `CastlingR
 ## Entwicklung
 
 ```bash
-npm install
-npm test          # 47 Tests
-npm run type-check
-npm run build
+pnpm install
+pnpm test          # 47 Tests
+pnpm run type-check
+pnpm run build
 ```
 
 ## Hintergrund

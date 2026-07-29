@@ -1,7 +1,7 @@
 {
   "name": "@arsalanrc/chess-engine",
   "version": "0.1.0",
-  "description": "A complete, dependency-free chess engine in TypeScript — full FIDE rules and a minimax bot with alpha-beta pruning.",
+  "description": "A complete, dependency-free chess engine in TypeScript: full FIDE rules and a minimax bot with alpha-beta pruning.",
   "keywords": [
     "chess",
     "chess-engine",
@@ -38,12 +38,12 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "demo": "npm run build && rm -rf demo/engine && cp -r dist demo/engine",
-    "serve": "npm run demo && npx --yes serve demo -l 4173",
+    "demo": "pnpm run build && rm -rf demo/engine && cp -r dist demo/engine",
+    "serve": "pnpm run demo && pnpm dlx serve demo -l 4173",
     "test": "vitest run",
     "test:watch": "vitest",
     "type-check": "tsc --noEmit",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
     "typescript": "^5.4.5",
@@ -54,5 +54,6 @@
   },
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "packageManager": "pnpm@11.1.2"
 }
