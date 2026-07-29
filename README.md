@@ -1,5 +1,7 @@
 # chess-engine
 
+**English** · [Deutsch](./README.de.md)
+
 A complete chess engine in TypeScript. Full FIDE rules, a minimax bot with alpha-beta pruning, and **zero runtime dependencies**.
 
 No board, no renderer, no framework. It takes a position and gives you legal moves, new positions and game results. What you draw with that is up to you.
