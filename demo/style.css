@@ -539,6 +539,10 @@ body {
 .movelog .n { color: var(--stone-dim); font-size: 0.75rem; }
 .movelog .mv { color: var(--stone); }
 .movelog .mv.bot { color: var(--cyan); }
+/* The log keeps its height when empty so the layout never jumps as moves come
+   in. Centring the placeholder makes that reserved space read as deliberate
+   rather than as a panel that failed to fill. */
+.movelog.is-empty { align-content: center; justify-items: center; }
 .movelog-empty {
   grid-column: 1 / -1;
   font-family: var(--font-ui);
@@ -575,10 +579,18 @@ body {
   font-size: 0.78rem;
   color: var(--stone-dim);
   display: flex;
+  flex-wrap: wrap;
   gap: 0.6rem;
   justify-content: center;
 }
 .foot-sep { opacity: 0.5; }
+.foot a {
+  color: var(--stone);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  transition: color 0.15s, border-color 0.15s;
+}
+.foot a:hover, .foot a:focus-visible { color: var(--amber); border-bottom-color: var(--amber); }
 
 /* ---------------------------------------------------------- a11y floor */
 

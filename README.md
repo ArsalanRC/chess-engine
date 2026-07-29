@@ -122,6 +122,10 @@ npm run build
 
 This engine started life inside a larger game platform of mine, where the architectural rule was that game logic must never import React. Extracting it here meant decoupling it from that platform's player model, which is why the API now talks about *positions* and *colours* instead of *players* and *sessions*. It is a cleaner boundary than the one it had originally.
 
+## Author
+
+Arsalan Khadim · [LinkedIn](https://www.linkedin.com/in/muhammad-arsalan-khadim-b87550259/) · [GitHub](https://github.com/ArsalanRC)
+
 ## Licence
 
 MIT © Arsalan Khadim

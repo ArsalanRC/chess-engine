@@ -233,6 +233,7 @@ function renderResult() {
 }
 
 function renderLog() {
+  el.movelog.classList.toggle("is-empty", log.length === 0);
   if (log.length === 0) {
     el.movelog.replaceChildren(
       Object.assign(document.createElement("li"), {
