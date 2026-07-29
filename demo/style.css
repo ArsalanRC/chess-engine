@@ -122,8 +122,11 @@ body {
 }
 .wordmark-dim { color: var(--stone-dim); }
 
-.topnav { display: flex; align-items: center; gap: 1.25rem; }
+.topnav { display: flex; align-items: center; gap: 1.1rem; }
 .topnav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
   font-size: 0.82rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -134,6 +137,17 @@ body {
   transition: color 0.15s, border-color 0.15s;
 }
 .topnav a:hover, .topnav a:focus-visible { color: var(--amber); border-bottom-color: var(--amber); }
+
+/* Brand marks inherit the link colour, so they theme themselves and light up
+   on hover with the label rather than sitting there as static artwork. */
+.ico { width: 1rem; height: 1rem; flex: none; fill: currentColor; }
+
+/* Below the wide breakpoint the labels go and the marks carry the meaning. */
+@media (max-width: 640px) {
+  .topnav a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .topnav a { gap: 0; border-bottom: 0; }
+  .ico { width: 1.15rem; height: 1.15rem; }
+}
 
 .lang-btn {
   font-family: var(--font-ui);
