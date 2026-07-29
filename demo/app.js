@@ -21,6 +21,7 @@ import {
 } from "./engine/index.js";
 
 import { pieceSVG } from "./pieces.js";
+import { STRINGS, t, setLang, getLang } from "./i18n.js";
 
 const FILES = "abcdefgh";
 const DEPTH = { easy: 2, medium: 3, hard: 4 };
@@ -51,13 +52,7 @@ const el = {
   overAgain: document.getElementById("over-again"),
 };
 
-/** Plain-language explanation for each way the engine can call a draw. */
-const DRAW_TEXT = {
-  stalemate: "The side to move has no legal move and is not in check.",
-  insufficient_material: "Neither side has enough material left to force mate.",
-  fifty_move: "Fifty moves passed with no capture and no pawn move.",
-  threefold_repetition: "The same position occurred three times.",
-};
+
 
 let state = createInitialState();
 let history = [];        // previous states, for undo
@@ -172,16 +167,16 @@ function renderReadout(legal) {
 
   const sign = pawns > 0 ? "+" : "";
   el.evalOut.textContent = Math.abs(cp) >= 90000
-    ? (cp > 0 ? "mate/W" : "mate/B")
+    ? t(cp > 0 ? "val.mateWhite" : "val.mateBlack")
     : sign + pawns.toFixed(2);
 
   el.depth.textContent = String(DEPTH[difficulty]);
   el.legal.textContent = String(legal.length);
   el.halfmove.textContent = String(state.halfmoveClock);
   el.fullmove.textContent = String(state.fullmoveNumber);
-  el.check.textContent = state.check ? "yes" : "no";
+  el.check.textContent = state.check ? t("val.yes") : t("val.no");
   el.check.classList.toggle("hot", state.check);
-  el.ep.textContent = state.enPassantSquare === null ? "none" : squareName(state.enPassantSquare);
+  el.ep.textContent = state.enPassantSquare === null ? t("val.none") : squareName(state.enPassantSquare);
   el.hash.textContent = state.positionHistory[state.positionHistory.length - 1] ?? ".";
 }
 
@@ -195,14 +190,14 @@ function renderStatus(legal, over) {
   }
   el.over.hidden = true;
   if (thinking) {
-    el.status.textContent = "Engine thinking";
+    el.status.textContent = t("status.thinking");
     return;
   }
-  const check = state.check ? ` <span class="danger">Check.</span>` : "";
+  const check = state.check ? ` <span class="danger">${t("status.check")}</span>` : "";
   el.status.innerHTML =
-    (state.turnColor === playerColor ? "Your move." : "Engine to move.") +
+    t(state.turnColor === playerColor ? "status.yourMove" : "status.engineMove") +
     check +
-    ` <span class="accent">${legal.length}</span> legal moves.`;
+    " " + t("status.legal", `<span class="accent">${legal.length}</span>`);
 }
 
 /**
@@ -215,13 +210,13 @@ function renderResult() {
   const won = !draw && winner === playerColor;
   const tone = draw ? "draw" : won ? "win" : "loss";
 
-  const kind = draw ? "Draw" : "Checkmate";
-  const head = draw ? "Draw" : won ? "You win" : "You lose";
+  const kind = t(draw ? "over.draw" : "over.checkmate");
+  const head = draw ? t("over.draw") : t(won ? "over.youWin" : "over.youLose");
 
   const detail = draw
-    ? DRAW_TEXT[state.drawReason] ?? ""
-    : `${winner === "white" ? "White" : "Black"} delivered mate on move ${state.fullmoveNumber}.` +
-      (won ? "" : " Undo takes back your last move if you want another try.");
+    ? t(`draw.${state.drawReason}`)
+    : t("over.mate", t(winner === "white" ? "side.white" : "side.black"), state.fullmoveNumber) +
+      (won ? "" : t("over.undoHint"));
 
   el.overKind.textContent = kind;
   el.overHead.textContent = head;
@@ -238,7 +233,7 @@ function renderLog() {
     el.movelog.replaceChildren(
       Object.assign(document.createElement("li"), {
         className: "movelog-empty",
-        textContent: "No moves yet.",
+        textContent: t("log.empty"),
       })
     );
     return;
@@ -370,16 +365,52 @@ function undo() {
   render();
 }
 
+// ---------------------------------------------------------------- language
+
+const langBtn = document.getElementById("lang-btn");
+
+/**
+ * Re-render every translated string. The board itself needs re-rendering too,
+ * because the status line and result overlay are built at runtime rather than
+ * sitting in the markup.
+ */
+function applyLang(lang) {
+  setLang(lang);
+  document.documentElement.lang = getLang();
+
+  for (const node of document.querySelectorAll("[data-i18n]")) {
+    node.textContent = t(node.dataset.i18n);
+  }
+  // Separate attribute for the few strings that legitimately carry markup, so
+  // the common path never assigns innerHTML.
+  for (const node of document.querySelectorAll("[data-i18n-html]")) {
+    node.innerHTML = t(node.dataset.i18nHtml);
+  }
+
+  document.title = t("meta.title");
+  syncThemeLabel();
+  renderLog();
+  render();
+
+  try { localStorage.setItem("lang", getLang()); } catch { /* private mode */ }
+}
+
+langBtn.addEventListener("click", () => applyLang(getLang() === "de" ? "en" : "de"));
+
 // ---------------------------------------------------------------- theme
 
 const themeBtn = document.getElementById("theme-btn");
 
-function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
+function syncThemeLabel() {
   themeBtn.setAttribute(
     "aria-label",
-    theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+    t(document.documentElement.dataset.theme === "dark" ? "theme.toLight" : "theme.toDark")
   );
+}
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  syncThemeLabel();
   try { localStorage.setItem("theme", theme); } catch { /* private mode */ }
 }
 
@@ -394,13 +425,6 @@ matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
   if (!saved) document.documentElement.dataset.theme = e.matches ? "light" : "dark";
 });
 
-// The inline head script already set the theme; sync the button's label to it.
-themeBtn.setAttribute(
-  "aria-label",
-  document.documentElement.dataset.theme === "dark"
-    ? "Switch to light theme"
-    : "Switch to dark theme"
-);
 
 // ---------------------------------------------------------------- wiring
 
@@ -452,8 +476,9 @@ document.addEventListener("keydown", (e) => {
 });
 
 buildBoard();
-renderLog();
-render();
+// applyLang paints every string and then renders, so this is the only start-up
+// call needed. The inline head script already chose the language.
+applyLang(document.documentElement.lang === "de" ? "de" : "en");
 
 // Surfaced for quick console poking, which is half the point of a library demo.
 window.chess = { get state() { return state; }, getValidMoves, evaluate, isInCheck };

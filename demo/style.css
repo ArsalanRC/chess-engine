@@ -135,6 +135,21 @@ body {
 }
 .topnav a:hover, .topnav a:focus-visible { color: var(--amber); border-bottom-color: var(--amber); }
 
+.lang-btn {
+  font-family: var(--font-ui);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.32rem 0.7rem;
+  color: var(--stone-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.lang-btn:hover, .lang-btn:focus-visible { color: var(--amber); border-color: var(--amber); }
+
 .theme-btn {
   display: grid;
   place-items: center;

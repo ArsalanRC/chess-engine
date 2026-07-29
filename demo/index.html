@@ -3,20 +3,25 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>chess-engine · playable demo</title>
+<title data-i18n="meta.title">chess-engine · playable demo</title>
 <meta name="description" content="Play against a minimax chess bot with alpha-beta pruning. A live demo of the chess-engine TypeScript library, with the engine's internal state on display." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="./style.css" />
 <script>
-  // Runs before first paint, so a light-theme visitor never sees a dark flash.
-  // Saved choice wins; otherwise follow the operating system.
+  // Runs before first paint, so nobody sees a dark flash or an English flash.
+  // A saved choice always wins; otherwise follow the browser and the OS.
   (function () {
-    var saved = null;
-    try { saved = localStorage.getItem("theme"); } catch (e) { /* private mode */ }
-    var theme = saved || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
-    document.documentElement.dataset.theme = theme;
+    var theme = null, lang = null;
+    try {
+      theme = localStorage.getItem("theme");
+      lang = localStorage.getItem("lang");
+    } catch (e) { /* private mode */ }
+    document.documentElement.dataset.theme =
+      theme || (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    var browserIsGerman = (navigator.language || "en").toLowerCase().startsWith("de");
+    document.documentElement.lang = lang || (browserIsGerman ? "de" : "en");
   })();
 </script>
 </head>
@@ -26,9 +31,10 @@
   <h1 class="wordmark">chess<span class="wordmark-dim">-engine</span></h1>
   <!-- Opened in new tabs so following a link never throws away a game. -->
   <nav class="topnav">
-    <a href="https://github.com/ArsalanRC/chess-engine" target="_blank" rel="noopener">Source</a>
-    <a href="https://github.com/ArsalanRC" target="_blank" rel="noopener">GitHub</a>
-    <a href="https://www.linkedin.com/in/muhammad-arsalan-khadim-b87550259/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/ArsalanRC/chess-engine" target="_blank" rel="noopener" data-i18n="nav.source">Source</a>
+    <a href="https://github.com/ArsalanRC" target="_blank" rel="noopener" data-i18n="nav.github">GitHub</a>
+    <a href="https://www.linkedin.com/in/muhammad-arsalan-khadim-b87550259/" target="_blank" rel="noopener" data-i18n="nav.linkedin">LinkedIn</a>
+    <button type="button" class="lang-btn" id="lang-btn" data-i18n="nav.lang">Deutsch</button>
     <button type="button" class="theme-btn" id="theme-btn" aria-label="Switch to light theme">
       <svg class="sun" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="12" cy="12" r="4.2"/>
@@ -60,7 +66,7 @@
       <div class="board-stack">
         <div class="board" id="board"></div>
         <div class="promo" id="promo" hidden>
-          <p class="promo-title">Promote to</p>
+          <p class="promo-title" data-i18n="promo.title">Promote to</p>
           <div class="promo-row" id="promo-row"></div>
         </div>
 
@@ -69,8 +75,8 @@
           <p class="over-head" id="over-head">You win</p>
           <p class="over-detail" id="over-detail"></p>
           <div class="over-actions">
-            <button type="button" class="btn" id="over-dismiss">View board</button>
-            <button type="button" class="btn btn-primary" id="over-again">New game</button>
+            <button type="button" class="btn" id="over-dismiss" data-i18n="over.dismiss">View board</button>
+            <button type="button" class="btn btn-primary" id="over-again" data-i18n="over.again">New game</button>
           </div>
         </div>
       </div>
@@ -81,24 +87,24 @@
     <div class="controls">
       <div class="ctl-set">
         <div class="ctl-group">
-          <span class="ctl-label" id="lbl-side">Play as</span>
+          <span class="ctl-label" id="lbl-side" data-i18n="ctl.playAs">Play as</span>
           <div class="seg" role="group" aria-labelledby="lbl-side">
-            <button type="button" data-side="white" class="on">White</button>
-            <button type="button" data-side="black">Black</button>
+            <button type="button" data-side="white" class="on" data-i18n="ctl.white">White</button>
+            <button type="button" data-side="black" data-i18n="ctl.black">Black</button>
           </div>
         </div>
         <div class="ctl-group">
-          <span class="ctl-label" id="lbl-diff">Engine</span>
+          <span class="ctl-label" id="lbl-diff" data-i18n="ctl.engine">Engine</span>
           <div class="seg" role="group" aria-labelledby="lbl-diff">
-            <button type="button" data-diff="easy">Easy</button>
-            <button type="button" data-diff="medium" class="on">Medium</button>
-            <button type="button" data-diff="hard">Hard</button>
+            <button type="button" data-diff="easy" data-i18n="ctl.easy">Easy</button>
+            <button type="button" data-diff="medium" class="on" data-i18n="ctl.medium">Medium</button>
+            <button type="button" data-diff="hard" data-i18n="ctl.hard">Hard</button>
           </div>
         </div>
       </div>
       <div class="btn-row">
-        <button type="button" id="undo" class="btn">Undo</button>
-        <button type="button" id="newgame" class="btn btn-primary">New game</button>
+        <button type="button" id="undo" class="btn" data-i18n="ctl.undo">Undo</button>
+        <button type="button" id="newgame" class="btn btn-primary" data-i18n="ctl.newGame">New game</button>
       </div>
     </div>
   </section>
@@ -107,34 +113,29 @@
   <aside class="engine-col">
 
     <section class="panel">
-      <h2 class="panel-head">Engine readout</h2>
+      <h2 class="panel-head" data-i18n="panel.readout">Engine readout</h2>
       <dl class="readout">
-        <div class="row"><dt>Evaluation</dt><dd id="eval-readout" class="num">0.00</dd></div>
-        <div class="row"><dt>Search depth</dt><dd id="r-depth" class="num">3</dd></div>
-        <div class="row"><dt>Legal moves</dt><dd id="r-legal" class="num">20</dd></div>
-        <div class="row"><dt>Halfmove clock</dt><dd id="r-halfmove" class="num">0</dd></div>
-        <div class="row"><dt>Fullmove</dt><dd id="r-fullmove" class="num">1</dd></div>
-        <div class="row"><dt>In check</dt><dd id="r-check" class="num">no</dd></div>
-        <div class="row"><dt>En passant</dt><dd id="r-ep" class="num">none</dd></div>
+        <div class="row"><dt data-i18n="row.eval">Evaluation</dt><dd id="eval-readout" class="num">0.00</dd></div>
+        <div class="row"><dt data-i18n="row.depth">Search depth</dt><dd id="r-depth" class="num">3</dd></div>
+        <div class="row"><dt data-i18n="row.legal">Legal moves</dt><dd id="r-legal" class="num">20</dd></div>
+        <div class="row"><dt data-i18n="row.halfmove">Halfmove clock</dt><dd id="r-halfmove" class="num">0</dd></div>
+        <div class="row"><dt data-i18n="row.fullmove">Fullmove</dt><dd id="r-fullmove" class="num">1</dd></div>
+        <div class="row"><dt data-i18n="row.check">In check</dt><dd id="r-check" class="num">no</dd></div>
+        <div class="row"><dt data-i18n="row.ep">En passant</dt><dd id="r-ep" class="num">none</dd></div>
       </dl>
       <div class="hash-block">
-        <span class="hash-label">Position hash</span>
+        <span class="hash-label" data-i18n="row.hash">Position hash</span>
         <code class="hash" id="r-hash">.</code>
       </div>
     </section>
 
     <section class="panel">
-      <h2 class="panel-head">Moves</h2>
-      <ol class="movelog" id="movelog"><li class="movelog-empty">No moves yet.</li></ol>
+      <h2 class="panel-head" data-i18n="panel.moves">Moves</h2>
+      <ol class="movelog" id="movelog"><li class="movelog-empty" data-i18n="log.empty">No moves yet.</li></ol>
     </section>
 
     <section class="panel panel-quiet">
-      <p class="note">
-        Everything above is read straight off the engine's public API. The bar is
-        <code>evaluate(state)</code> in centipawns, the counters come off
-        <code>ChessGameState</code>, and the hash is what
-        <code>hashPosition()</code> uses to detect threefold repetition.
-      </p>
+      <p class="note" data-i18n-html="note.body"></p>
       <pre class="snippet"><code>npm install @arsalanrc/chess-engine</code></pre>
     </section>
 
@@ -142,9 +143,10 @@
 </main>
 
 <footer class="foot">
-  <span>Built by <a href="https://www.linkedin.com/in/muhammad-arsalan-khadim-b87550259/" target="_blank" rel="noopener">Arsalan Khadim</a></span>
+  <span><span data-i18n="foot.built">Built by</span>
+    <a href="https://www.linkedin.com/in/muhammad-arsalan-khadim-b87550259/" target="_blank" rel="noopener">Arsalan Khadim</a></span>
   <span class="foot-sep">·</span>
-  <span>Zero runtime dependencies. Full FIDE rules.</span>
+  <span data-i18n="foot.deps">Zero runtime dependencies. Full FIDE rules.</span>
   <span class="foot-sep">·</span>
   <span>MIT</span>
 </footer>
