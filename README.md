@@ -11,8 +11,13 @@ No board, no renderer, no framework. It takes a position and gives you legal mov
 The demo puts the engine's internals on screen next to the board: live evaluation, legal move count, halfmove clock and the raw position hash used for repetition detection. It loads the compiled library as plain ES modules, with no bundler in the way.
 
 ```bash
-npm install @arsalanrc/chess-engine
+pnpm add github:ArsalanRC/chess-engine
 ```
+
+> Installed straight from the repository: the `prepare` script compiles it on install, so there is
+> no build step for you. **pnpm rather than npm** is deliberate. npm runs dependency `postinstall`
+> scripts by default, which is the main supply-chain attack vector in this ecosystem; pnpm blocks
+> them unless each one is named. Same registry, safer default.
 
 ## Quick start
 
@@ -115,9 +120,9 @@ The types (`ChessGameState`, `ChessMove`, `ChessPiece`, `ChessBoard`, `CastlingR
 
 ```bash
 pnpm install
-pnpm test          # 47 tests
-pnpm run type-check
-pnpm run build
+ppnpm test          # 47 tests
+ppnpm run type-check
+ppnpm run build
 ```
 
 ## Background
