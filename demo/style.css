@@ -1,28 +1,80 @@
 /* chess-engine demo
-   Direction: a precision instrument, not a chess website. Blue-slate ground,
-   warm stone squares, amber and cyan readouts. The engine's internals are the
-   feature, so the data typography carries as much weight as the board. */
+   Direction: a precision instrument, not a chess website. The engine's
+   internals are the feature, so the data typography carries as much weight as
+   the board.
+
+   Two themes, one instrument. Dark is the lit panel; light is the printed
+   manual it shipped with. The light theme is not an inversion: the accents are
+   re-picked for contrast on paper, because amber that glows on slate turns
+   into illegible mustard on white.
+
+   Token names describe the dark theme's appearance, which is awkward for
+   theming, so the ROLE of each is written out below and the light theme
+   overrides by role. */
 
 :root {
-  --ink:          #10141C;
-  --slate:        #1A2030;
-  --slate-2:      #222B3D;
-  --slate-3:      #2E3A50;
-  --line:         #37435C;
-  --stone:        #CBC5B7;
-  --stone-dim:    #8D93A3;
-  --amber:        #E8A33D;
-  --cyan:         #5BC8D4;
-  --rose:         #D9556B;
+  color-scheme: dark;
+
+  --ink:          #10141C;   /* recessed surface: code blocks, eval track      */
+  --slate:        #1A2030;   /* page ground                                    */
+  --slate-2:      #222B3D;   /* panel surface                                  */
+  --slate-3:      #2E3A50;   /* raised or active chip                          */
+  --line:         #37435C;   /* borders and rules                              */
+  --stone:        #CBC5B7;   /* primary text                                   */
+  --stone-dim:    #8D93A3;   /* secondary text                                 */
+  --amber:        #E8A33D;   /* primary accent                                 */
+  --cyan:         #5BC8D4;   /* data accent                                    */
+  --rose:         #D9556B;   /* danger: check, loss                            */
 
   --sq-light:     #C7C1B3;
   --sq-dark:      #3A465E;
+
+  --pc-white:     #F4F0E6;
+  --pc-black:     #191F2B;
+  --pc-shadow:    rgba(0, 0, 0, 0.45);
+  --glow:         rgba(91, 200, 212, 0.07);
+
+  /* The eval bar means "white's share of the position", so its fill has to
+     stay light and its track dark in BOTH themes. Deriving it from text
+     colours inverts the meaning the moment the theme flips. */
+  --eval-track:   #10141C;
+  --eval-fill-lo: #CBC5B7;
+  --eval-fill-hi: #EDE8DC;
 
   --font-display: "Instrument Serif", Georgia, serif;
   --font-ui:      "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --r: 4px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --ink:          #E7E1D3;
+  --slate:        #F7F4ED;
+  --slate-2:      #FDFBF5;
+  --slate-3:      #E5DECD;
+  --line:         #D2C9B6;
+  --stone:        #1E2530;
+  --stone-dim:    #6E6A60;
+  --amber:        #8A5A0C;
+  --cyan:         #146273;
+  --rose:         #A82F45;
+
+  /* The board keeps its contrast ratio but lifts, so it sits on paper without
+     turning into a hole punched through the page. */
+  --sq-light:     #DED7C6;
+  --sq-dark:      #78859F;
+
+  --pc-white:     #FBF9F3;
+  --pc-black:     #161C26;
+  --pc-shadow:    rgba(40, 34, 24, 0.35);
+  --glow:         rgba(20, 98, 115, 0.06);
+
+  --eval-track:   #5C6879;
+  --eval-fill-lo: #F2EFE7;
+  --eval-fill-hi: #FFFFFF;
 }
 
 * { box-sizing: border-box; }
@@ -46,7 +98,7 @@ body {
   display: flex;
   flex-direction: column;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(91, 200, 212, 0.07), transparent 70%);
+    radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow), transparent 70%);
 }
 
 /* ---------------------------------------------------------- header */
@@ -70,7 +122,7 @@ body {
 }
 .wordmark-dim { color: var(--stone-dim); }
 
-.topnav { display: flex; gap: 1.25rem; }
+.topnav { display: flex; align-items: center; gap: 1.25rem; }
 .topnav a {
   font-size: 0.82rem;
   letter-spacing: 0.06em;
@@ -82,6 +134,29 @@ body {
   transition: color 0.15s, border-color 0.15s;
 }
 .topnav a:hover, .topnav a:focus-visible { color: var(--amber); border-bottom-color: var(--amber); }
+
+.theme-btn {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--stone-dim);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+.theme-btn:hover, .theme-btn:focus-visible {
+  color: var(--amber);
+  border-color: var(--amber);
+}
+.theme-btn svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+/* One button, two glyphs: show the theme you would switch TO. */
+.theme-btn .moon { display: none; }
+:root[data-theme="light"] .theme-btn .moon { display: block; }
+:root[data-theme="light"] .theme-btn .sun { display: none; }
 
 /* ---------------------------------------------------------- layout */
 
@@ -116,7 +191,7 @@ body {
 .evalbar-track {
   position: relative;
   height: 100%;
-  background: var(--ink);
+  background: var(--eval-track);
   border: 1px solid var(--line);
   border-radius: var(--r);
   overflow: hidden;
@@ -125,12 +200,15 @@ body {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   height: 50%;
-  background: linear-gradient(to top, var(--stone), #EDE8DC);
+  background: linear-gradient(to top, var(--eval-fill-lo), var(--eval-fill-hi));
   transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 /* Playing black flips the board, so the bar flips with it and your own side
    stays at the bottom where you are looking. */
-.evalbar.flip .evalbar-fill { bottom: auto; top: 0; background: linear-gradient(to bottom, var(--stone), #EDE8DC); }
+.evalbar.flip .evalbar-fill {
+  bottom: auto; top: 0;
+  background: linear-gradient(to bottom, var(--eval-fill-lo), var(--eval-fill-hi));
+}
 .evalbar-mid {
   position: absolute;
   left: 0; right: 0; top: 50%;
@@ -193,11 +271,18 @@ body {
   width: 84%;
   height: 84%;
   display: block;
-  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 1px 1.5px var(--pc-shadow));
   animation: place 0.18s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.pc.w { fill: #F4F0E6; }
-.pc.b { fill: #191F2B; }
+.pc.w { fill: var(--pc-white); }
+.pc.b { fill: var(--pc-black); }
+/* On paper a near-white piece sitting on a near-white square needs a contour
+   of its own, which the drop shadow alone does not provide. */
+:root[data-theme="light"] .pc.w {
+  stroke: #8A8172;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
 .pc .ac {
   fill: none;
   stroke-width: 1.5;
@@ -205,7 +290,6 @@ body {
 }
 .pc.w .ac { stroke: rgba(90, 80, 64, 0.55); }
 .pc.b .ac { stroke: rgba(226, 232, 244, 0.42); }
-.pc .hole { fill: var(--sq-light); }
 .pc.b .hole { fill: #C9CEDA; }
 .pc.w .hole { fill: #6B6252; }
 

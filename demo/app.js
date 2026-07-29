@@ -370,6 +370,38 @@ function undo() {
   render();
 }
 
+// ---------------------------------------------------------------- theme
+
+const themeBtn = document.getElementById("theme-btn");
+
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  themeBtn.setAttribute(
+    "aria-label",
+    theme === "dark" ? "Switch to light theme" : "Switch to dark theme"
+  );
+  try { localStorage.setItem("theme", theme); } catch { /* private mode */ }
+}
+
+themeBtn.addEventListener("click", () => {
+  applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+});
+
+// Follow the OS while the visitor has not expressed a preference of their own.
+matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
+  let saved = null;
+  try { saved = localStorage.getItem("theme"); } catch { /* private mode */ }
+  if (!saved) document.documentElement.dataset.theme = e.matches ? "light" : "dark";
+});
+
+// The inline head script already set the theme; sync the button's label to it.
+themeBtn.setAttribute(
+  "aria-label",
+  document.documentElement.dataset.theme === "dark"
+    ? "Switch to light theme"
+    : "Switch to dark theme"
+);
+
 // ---------------------------------------------------------------- wiring
 
 el.newgame.addEventListener("click", newGame);
