@@ -11,8 +11,14 @@ Kein Brett, kein Renderer, kein Framework. Die Engine nimmt eine Stellung entgeg
 Die Demo legt die Innenansicht der Engine neben das Brett: laufende Bewertung, Anzahl legaler Züge, Halbzugzähler und der rohe Stellungs-Hash, mit dem die dreifache Stellungswiederholung erkannt wird. Geladen wird die kompilierte Bibliothek als reine ES-Module, ohne Bundler dazwischen.
 
 ```bash
-npm install @arsalanrc/chess-engine
+pnpm add github:ArsalanRC/chess-engine
 ```
+
+> Direkt aus dem Repository installiert: Das `prepare`-Skript kompiliert beim Installieren, du
+> brauchst also keinen Build-Schritt. **pnpm statt npm** ist Absicht. npm führt `postinstall`-Skripte
+> von Abhängigkeiten standardmäßig aus, und genau das ist in diesem Ökosystem der wichtigste
+> Angriffsweg für Supply-Chain-Attacken. pnpm blockiert sie, solange sie nicht einzeln freigegeben
+> sind. Gleiche Registry, sicherere Voreinstellung.
 
 ## Schnellstart
 
@@ -115,9 +121,9 @@ Die Typen (`ChessGameState`, `ChessMove`, `ChessPiece`, `ChessBoard`, `CastlingR
 
 ```bash
 pnpm install
-pnpm test          # 47 Tests
-pnpm run type-check
-pnpm run build
+ppnpm test          # 47 Tests
+ppnpm run type-check
+ppnpm run build
 ```
 
 ## Hintergrund
