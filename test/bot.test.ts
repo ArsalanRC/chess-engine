@@ -73,6 +73,59 @@ describe("evaluate", () => {
 });
 
 describe("selectBotMove", () => {
+  /**
+   * The regression this file was missing.
+   *
+   * Move ordering shuffles moves the evaluation rates equally, because a strict
+   * comparison otherwise resolves every tie in favour of whichever move
+   * generation emitted first. In a symmetric opening nearly everything ties, so
+   * without the shuffle the engine opens with the same move in every game
+   * forever.
+   *
+   * That fix lived in a shuffle and a comment. Every other test in this file
+   * passes with the shuffle deleted, because they all assert legality or
+   * strength and this is neither. So it gets its own test.
+   *
+   * Asserted at medium, and that choice is the whole test.
+   *
+   * The obvious version of this test uses easy, and it is worthless: easy plays
+   * an outright random legal move 20% of the time, so it produces variety with
+   * the shuffle deleted and the test passes either way. Verified by deleting the
+   * shuffle and watching the easy version stay green.
+   *
+   * Medium has no random branch, so the shuffle is the only thing that can vary
+   * the opening. The bar is deliberately low. Depth 3 separates moves on merit,
+   * so genuinely fewer of them tie, and two distinct openings is what the fix
+   * actually buys rather than what would sound impressive.
+   */
+  it("does not open with the same move every game", () => {
+    const openings = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      const move = selectBotMove(createInitialState(), "medium");
+      openings.add(`${move!.from}-${move!.to}`);
+    }
+    expect(openings.size).toBeGreaterThan(1);
+  });
+
+  /**
+   * The other half of the same decision. Randomness that cannot be pinned down
+   * makes a losing game impossible to report, so the generator is injectable
+   * and the same seed has to replay identically.
+   */
+  it("replays identically when given the same seeded generator", () => {
+    const seeded = () => {
+      let x = 12345;
+      return () => {
+        x = (x * 1103515245 + 12345) & 0x7fffffff;
+        return x / 0x7fffffff;
+      };
+    };
+    const first = selectBotMove(createInitialState(), "hard", { random: seeded() });
+    const second = selectBotMove(createInitialState(), "hard", { random: seeded() });
+    expect(first!.from).toBe(second!.from);
+    expect(first!.to).toBe(second!.to);
+  });
+
   it("returns a legal move from the opening position (all difficulties)", () => {
     const state = createInitialState();
     const legal = getValidMoves(state);
