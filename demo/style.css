@@ -41,6 +41,20 @@
   --eval-fill-lo: #CBC5B7;
   --eval-fill-hi: #EDE8DC;
 
+  /* Glass. Three parts, and it reads as flat paint if any one is missing: a
+     translucent fill, a blur that keeps saturation so the faceplate behind
+     stays coloured rather than washing out, and a hairline of light along the
+     top edge where a real pane would catch it.
+
+     Opacity is the readability dial rather than a style choice. This page runs
+     lower than its siblings, at 78%, because the readouts are mono at 0.8rem
+     and small data type is the first thing to lose against a field showing
+     through it. An instrument that is hard to read is not an instrument. */
+  --glass:      color-mix(in srgb, var(--slate-2) 78%, transparent);
+  --glass-thin: color-mix(in srgb, var(--slate-2) 58%, transparent);
+  --glass-blur: saturate(180%) blur(20px);
+  --glass-edge: rgba(255, 255, 255, 0.07);
+
   --font-display: "Instrument Serif", Georgia, serif;
   --font-ui:      "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
@@ -75,6 +89,12 @@
   --eval-track:   #5C6879;
   --eval-fill-lo: #F2EFE7;
   --eval-fill-hi: #FFFFFF;
+
+  /* On paper the panel is barely lighter than the page, so it needs a denser
+     pane than the dark theme or it stops separating from the faceplate. */
+  --glass:      color-mix(in srgb, var(--slate-2) 74%, transparent);
+  --glass-thin: color-mix(in srgb, var(--slate-2) 55%, transparent);
+  --glass-edge: rgba(255, 255, 255, 0.6);
 }
 
 * { box-sizing: border-box; }
@@ -93,12 +113,52 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The field the glass panels blur.
+
+   A blur over a flat colour gives back the flat colour, so glass on a plain
+   background is an expensive way to draw nothing. The panels need structure
+   behind them, and on an instrument the honest structure is the machined
+   faceplate it is set into: a fine 6px hairline rule, plus a cyan pool where
+   the data readouts sit and an amber one behind the board.
+
+   6px rather than the 24px and 28px used on the sibling pages, because this is
+   a milled surface rather than paper or a drawing. At that pitch a 20px blur
+   erases it completely under a panel and it reads as brushed metal in the
+   margins, which is the difference this page wants.
+
+   `background-attachment: fixed` holds the faceplate still while the page
+   scrolls over it.
+
+   Painted on `body` rather than a fixed `::before` at `z-index: -1`. That
+   pattern needs the whole ancestor chain free of stacking contexts, and this
+   page fades the promotion dialog and the result overlay in and out, so the
+   trap is live here rather than theoretical. */
 body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
   background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, var(--glow), transparent 70%);
+    radial-gradient(ellipse 60% 45% at 78% -8%, color-mix(in srgb, var(--cyan) 11%, transparent), transparent 70%),
+    radial-gradient(ellipse 62% 48% at 14% 24%, color-mix(in srgb, var(--amber) 8%, transparent), transparent 72%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 5px,
+      color-mix(in srgb, var(--line) 22%, transparent) 5px 6px
+    );
+  background-attachment: fixed;
+}
+
+:root[data-theme="light"] body {
+  /* The printed manual rather than the lit panel, so the ruling comes up a
+     little and the pools drop back to a tint. */
+  background-image:
+    radial-gradient(ellipse 60% 45% at 78% -8%, color-mix(in srgb, var(--cyan) 9%, transparent), transparent 70%),
+    radial-gradient(ellipse 62% 48% at 14% 24%, color-mix(in srgb, var(--amber) 7%, transparent), transparent 72%),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 5px,
+      color-mix(in srgb, var(--line) 30%, transparent) 5px 6px
+    );
 }
 
 /* ---------------------------------------------------------- header */
@@ -559,12 +619,22 @@ body {
 .engine-col { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
 
 .panel {
-  background: var(--slate-2);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: 1rem 1.1rem 1.1rem;
+  box-shadow: inset 0 1px 0 var(--glass-edge), 0 18px 40px -30px var(--pc-shadow);
 }
-.panel-quiet { background: transparent; }
+/* No fill and no blur: this one is a grouping, not a pane. Giving it glass
+   would put a second sheet over the panels inside it. */
+.panel-quiet {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
 
 .panel-head {
   margin: 0 0 0.85rem;
@@ -710,6 +780,30 @@ body {
 :focus-visible {
   outline: 2px solid var(--cyan);
   outline-offset: 2px;
+}
+
+/* Glass is a readability cost somebody may have already told their machine
+   they cannot pay, and this page asks more of the eye than its siblings: the
+   readouts are the feature and they are set in small mono. macOS "Reduce
+   transparency" and its Windows equivalent both report here, so every panel
+   goes solid and every blur comes off. Nothing moves and nothing reflows,
+   because the fills are the same colours at full strength.
+
+   The recessed surfaces are not listed. `.hash` and `.snippet` are screens set
+   into the instrument rather than panes, so they stay solid `--ink` in every
+   mode: amber mono at 0.66rem is the first thing on the page to lose against
+   anything showing through it. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass:      var(--slate-2);
+    --glass-thin: var(--slate-2);
+    --glass-edge: transparent;
+  }
+  .panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  body { background-image: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
