@@ -25,3 +25,4 @@ export {
   onBoard,
 } from "./rules.js";
 export { selectBotMove, evaluate } from "./bot.js";
+export { toFen, squareToAlgebraic } from "./fen.js";
