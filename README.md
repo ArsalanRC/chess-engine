@@ -106,6 +106,9 @@ Empty squares are `null`. The helpers `fileOf`, `rankOf` and `frToSq` convert bo
 | `getValidMoves(state)` | Every fully-legal move for the side to move |
 | `applyMove(state, move)` | New state with all bookkeeping applied |
 | `selectBotMove(state, difficulty)` | The bot's choice, or `null` if the game is over |
+| `toSan(state, move)` | The move in algebraic notation: `Nbd2`, `O-O-O`, `Qxf7#` |
+| `toFen(state)` | The position as a FEN string |
+| `squareToAlgebraic(square)` | A square index as `e4` |
 | `evaluate(state)` | Centipawn score, positive for white |
 | `isInCheck(board, color)` | Whether that colour's king is attacked |
 | `isSquareAttacked(board, sq, byColor)` | Attack detection for a single square |
@@ -120,9 +123,9 @@ The types (`ChessGameState`, `ChessMove`, `ChessPiece`, `ChessBoard`, `CastlingR
 
 ```bash
 pnpm install
-ppnpm test          # 47 tests
-ppnpm run type-check
-ppnpm run build
+pnpm test          # 77 tests
+pnpm run type-check
+pnpm run build
 ```
 
 ## Background
