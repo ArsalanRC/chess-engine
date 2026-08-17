@@ -107,6 +107,9 @@ Leere Felder sind `null`. Die Helfer `fileOf`, `rankOf` und `frToSq` rechnen in 
 | `getValidMoves(state)` | Alle vollständig legalen Züge der Seite am Zug |
 | `applyMove(state, move)` | Neuer State mit allen Buchhaltungsdetails |
 | `selectBotMove(state, difficulty)` | Die Wahl des Bots, oder `null` wenn die Partie vorbei ist |
+| `toSan(state, move)` | Der Zug in algebraischer Notation: `Nbd2`, `O-O-O`, `Qxf7#` |
+| `toFen(state)` | Die Stellung als FEN-String |
+| `squareToAlgebraic(square)` | Ein Feldindex als `e4` |
 | `evaluate(state)` | Centipawn-Bewertung, positiv für Weiß |
 | `isInCheck(board, color)` | Steht der König dieser Farbe im Schach |
 | `isSquareAttacked(board, sq, byColor)` | Angriffserkennung für ein einzelnes Feld |
@@ -121,9 +124,9 @@ Die Typen (`ChessGameState`, `ChessMove`, `ChessPiece`, `ChessBoard`, `CastlingR
 
 ```bash
 pnpm install
-ppnpm test          # 47 Tests
-ppnpm run type-check
-ppnpm run build
+pnpm test          # 77 Tests
+pnpm run type-check
+pnpm run build
 ```
 
 ## Hintergrund
