@@ -18,6 +18,7 @@ import {
   fileOf,
   rankOf,
   frToSq,
+  toSan,
 } from "./engine/index.js";
 
 import { pieceSVG } from "./pieces.js";
@@ -69,17 +70,14 @@ const flipped = () => playerColor === "black";
 
 const squareName = (sq) => FILES[fileOf(sq)] + (rankOf(sq) + 1);
 
-/** Light SAN. No disambiguation, which is fine for a scoresheet nobody replays. */
-function toSan(st, move) {
-  if (move.isCastling) return move.isCastling === "kingside" ? "O-O" : "O-O-O";
-  const piece = st.board[move.from];
-  const letter = piece.type === "P" ? "" : piece.type;
-  const captured = move.capturedPiece ?? st.board[move.to];
-  const takes = captured || move.isEnPassant ? "x" : "";
-  const origin = piece.type === "P" && takes ? FILES[fileOf(move.from)] : "";
-  const promo = move.promotion ? "=" + move.promotion : "";
-  return letter + origin + takes + squareName(move.to) + promo;
-}
+/* The move log used to carry a "light SAN" written here, which skipped
+   disambiguation and the check and mate marks. It produced a scoresheet that
+   looked right and could not be replayed: two knights reaching the same square
+   both printed as `Nd2`, and Scholar's mate ended on a quiet-looking `Qxf7`.
+
+   `toSan` now comes from the engine, which is also the point of the demo. The
+   page exists to show what the library does, so a page reimplementing the
+   library's job badly was arguing against itself. */
 
 // ---------------------------------------------------------------- rendering
 
